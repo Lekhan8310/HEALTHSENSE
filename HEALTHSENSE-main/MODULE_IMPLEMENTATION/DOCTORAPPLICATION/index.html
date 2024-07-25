@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Healthsense|home</title>
+	<style type="text/css">
+		body{
+			background-color: #F5F5F5;
+			font-family: Arial, sans-serif;
+			margin: 0;
+			padding: 0;
+		}
+		.data-container{
+			display:fixed;
+			justify-content: space-between;
+			width: 500px;
+			margin: 50px auto;
+			padding: 5px;
+			background-color: #FFF;
+			box-shadow: 0 2px 20px rgba(0, 0, 0,0.1);
+			border-radius: 10px;
+		}
+        .data-container1{
+			display: fixed;
+			justify-content: space-between;
+            align-items: center;
+            width:252px ;
+			margin: 50px auto;
+			padding: 5px;
+			background-color: #FFF;
+			box-shadow: 0 2px 20px rgba(0, 0, 0,0.1);
+			border-radius: 10px;
+		}
+
+		.data-item{
+			text-align: center;
+		}
+
+		.data-item h2{
+			font-size: 24px;
+			font-weight: bold;
+			margin-bottom: 10px;
+		}
+
+		.data-item p{
+			font-size: 48px;
+			font-weight: bold;
+			color: #6EB7FF;
+		}
+
+		.data-head{
+			margin: auto;
+			width: 50%;
+			text-align: center;
+			font-size: 45px;
+			font-weight: bold;
+			margin: 50px auto;
+			padding: 20px;
+			background-color: #FFF;
+			box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+			border-radius: 20px;
+
+
+		}
+
+
+
+	</style>
+</head>
+<body>
+
+	<div class="data-head">HEALTHSENSE</div>
+
+	<div class="data-container1">
+		<div class="data-item">
+			<h2>SpO2</h2>
+			<p class="value" id="spo2">%</p>
+		</div>
+    </div>
+    <div class="data-container">
+		<div class="data-item">
+			<h2>Humidity</h2>
+			<p class="value" id="humidity"></p>
+		</div>
+        <div class="data-item">
+			<h2>Temperature</h2>
+			<p class="value" id="temperature"> &#8451;</p>
+		</div>
+        <div class="data-item">
+			<h2>Motion</h2>
+			<p class="value" id="motion"></p>
+		</div>
+
+		
+	</div>
+    <audio id="alertSound" src="alert.mp3"></audio>
+	<!-- the scripts for products you want to access must be added-->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <!-- Add Firebase products that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-installations.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+	<script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-analytics.js";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+      
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+          apiKey: "AIzaSyBbklMa8cmYBN7obtTjd46OIxq7YbAnv-k",
+          authDomain: "healthsense-8741d.firebaseapp.com",
+          databaseURL: "https://healthsense-8741d-default-rtdb.firebaseio.com",
+          projectId: "healthsense-8741d",
+          storageBucket: "healthsense-8741d.appspot.com",
+          messagingSenderId: "573127796009",
+          appId: "1:573127796009:web:290a5b02b51716f0bd0338",
+          measurementId: "G-WS2RG34YJN"
+        };
+      
+        // Initialize Firebase
+
+	  // Initialize Firebase
+	  firebase.initializeApp(firebaseConfig);
+
+
+	  // getting reference to the database
+	  var database = firebase.database();
+
+	  //getting reference to the data we want
+	  var dataRef1 = database.ref('test/Humidity');
+	  var dataRef2 = database.ref('test/Temperature');
+      var dataRef3 = database.ref('PatientHealth/SpO2');
+	  var dataRef4 = database.ref('movement/acceleration');
+
+	  //fetch the data
+	  dataRef1.on('value', function(getdata1){
+	  	var humi = getdata1.val();
+	  	document.getElementById('humidity').innerHTML = humi + "%";
+		  if (parseInt(humi) > 85 && !isAlertSoundPlaying) {
+            playAlertSound();
+			alert(" Check Room Humidity is High!!");
+            }
+			if (parseInt(humi) < 60 && !isAlertSoundPlaying) {
+            playAlertSound();
+			alert(" Check Room Humidity is Low!!");
+            }
+	  })
+
+	   dataRef2.on('value', function(getdata2){
+	  	var temp = getdata2.val();
+	  	document.getElementById('temperature').innerHTML = temp + "&#8451;";
+		  if (parseInt(temp) > 42 && !isAlertSoundPlaying) {
+            playAlertSound();
+			alert(" Check Room Temperature is High!!");
+            }
+		if (parseInt(temp) < 16  && !isAlertSoundPlaying) {
+            playAlertSound();
+			alert(" Check Room Temperature is Low!!");
+            }
+	  })
+      dataRef3.on('value', function(getdata1){
+	  	var spo2 = getdata1.val();
+	  	document.getElementById('spo2').innerHTML = spo2 + "%";
+          if (parseInt(spo2) < 90) {
+            playAlertSound(alert("Patient's Condition is Abnormal!"));
+	  }})
+
+	   dataRef4.on('value', function(getdata2){
+	  	var mot = getdata2.val();
+	  	document.getElementById('motion').innerHTML = mot ;
+		  if (parseInt(mot) > 100 && !isAlertSoundPlaying) {
+            playAlertSound();
+			alert(" Motion Deteced !!");
+            }
+	  })
+      function playAlertSound() {  // Set flag to indicate sound is playing
+            var audio = new Audio('alert.mp3'); // Replace 'alert_sound.mp3' with the path to your alert sound file
+            audio.play();
+            }
+	</script>
+
+</body>
+</html>
